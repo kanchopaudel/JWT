@@ -4,6 +4,10 @@ const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+//load env variables
+require('dotenv').config();
 
 //User modules
 const User = require('./Modules/Users');
@@ -39,6 +43,31 @@ app.post('/register',(req,res)=>{
             });
         });
      });
+})
+
+app.post("/login",(req,res)=>{
+    if (!req.body.email || !req.body.password) {
+        res.send("Provide valid user and password");
+    } else {
+        User.findOne({user: req.body.user}).then(savedUser => {
+                bcrypt.compare(req.body.password,savedUser.password,(err,status)=>{
+                    if (err) {
+                        res.send("Error encounterd");
+                        console.log("Error " + err);
+                    }
+                    if (status){
+                        var token = jwt.sign({id: savedUser.email},process.env.SECRET,{expiresIn: 300});
+                        res.status(200).send({auth: true, token: token});
+                    } else {
+                        res.send("Incorrect Password");
+                    }
+                })
+        }).catch(err => {
+            res.send("Could not find user");
+            console.log("Error "+ err);
+        });
+    }
+    
 })
 
 app.listen(9090,()=>{
