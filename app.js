@@ -3,14 +3,6 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-
-//load env variables
-require('dotenv').config();
-
-//User modules
-const User = require('./Modules/Users');
 
 //Middleware
 app.use(express.json());
@@ -20,55 +12,10 @@ mongoose.connect('mongodb://localhost:27017/jwt_token',{useNewUrlParser: true , 
     console.log("connected to the db");
 })
 
-app.get("/",(req,res)=>{
-    res.send("Welcome to the app\n");
-})
+//populate routes
+var home = require('./Router/home');
 
-app.post('/register',(req,res)=>{
-    console.log(req.body);
-
-    let newUser = new User({
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        email: req.body.email,
-        password: req.body.password
-    });
-     bcrypt.genSalt(10,(err,salt)=>{
-        bcrypt.hash(newUser.password,salt,(err,hash)=>{
-            newUser.password = hash;
-            newUser.save().then(savedUser => {
-                res.send("new user saved");
-            }).catch(err => {
-                console.log("Err saving user: "+ err);
-            });
-        });
-     });
-})
-
-app.post("/login",(req,res)=>{
-    if (!req.body.email || !req.body.password) {
-        res.send("Provide valid user and password");
-    } else {
-        User.findOne({user: req.body.user}).then(savedUser => {
-                bcrypt.compare(req.body.password,savedUser.password,(err,status)=>{
-                    if (err) {
-                        res.send("Error encounterd");
-                        console.log("Error " + err);
-                    }
-                    if (status){
-                        var token = jwt.sign({id: savedUser.email},process.env.SECRET,{expiresIn: 300});
-                        res.status(200).send({auth: true, token: token});
-                    } else {
-                        res.send("Incorrect Password");
-                    }
-                })
-        }).catch(err => {
-            res.send("Could not find user");
-            console.log("Error "+ err);
-        });
-    }
-    
-})
+app.use("/",home);
 
 app.listen(9090,()=>{
     console.log("listening on port 9090\n");
