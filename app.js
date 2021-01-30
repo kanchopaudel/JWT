@@ -4,6 +4,9 @@ const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
+//load env variables
+require('dotenv').config();
+
 //Middleware
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));

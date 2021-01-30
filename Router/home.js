@@ -2,9 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
-//load env variables
-require('dotenv').config();
+const verifyToken = require('../Modules/auth');
 
 //User modules
 const User = require('../Modules/Users');
@@ -13,19 +11,15 @@ router.get("/",(req,res)=>{
     res.send("Welcome to the router\n");
 })
 
-router.get("/user",(req,res)=>{
-    var token = req.headers['x-access-token'];
-
-    jwt.verify(token,process.env.SECRET,(err,decoded)=>{
-        if (err) return res.status(500).send({auth:false,message:"Failed to authenticate"});
-
-        User.findOne({email: decoded.id},{_id: 0,password: 0}).then(savedUser => {
+router.get("/user",verifyToken,(req,res,next)=>{
+    
+        User.findOne({email: req.userId},{_id: 0,password: 0}).then(savedUser => {
             res.status(200).send(savedUser);
         }).catch(err=>{
             console.log("Error : "+err);
             res.send("Error in sending details");
         })
-    })
+    
 });
 
 router.post('/register',(req,res)=>{
