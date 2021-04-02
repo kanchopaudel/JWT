@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 
 //load env variables
 require('dotenv').config();
@@ -10,6 +11,7 @@ require('dotenv').config();
 //Middleware
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+app.use(cookieParser());
 
 mongoose.connect('mongodb://localhost:27017/jwt_token',{useNewUrlParser: true , useUnifiedTopology: true },()=>{
     console.log("connected to the db");
